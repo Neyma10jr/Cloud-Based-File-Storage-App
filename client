@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DriveLite</title>
+</head>
+<body>
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Enter Email">
+  <button onclick="login()">Login</button>
+
+  <h2>Upload File</h2>
+  <input type="file" id="file">
+  <button onclick="uploadFile()">Upload</button>
+
+  <h2>Your Files</h2>
+  <ul id="fileList"></ul>
+
+  <script>
+    let userEmail = '';
+
+    function login() {
+      userEmail = document.getElementById('email').value;
+      fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail })
+      }).then(() => loadFiles());
+    }
+
+    function uploadFile() {
+      const fileInput = document.getElementById('file');
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('email', userEmail);
+
+      fetch('http://localhost:5000/api/files/upload', {
+        method: 'POST',
+        body: formData
+      }).then(() => loadFiles());
+    }
+
+    function loadFiles() {
+      fetch(`http://localhost:5000/api/files/${userEmail}`)
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById('fileList');
+          list.innerHTML = '';
+          data.forEach(file => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${file.url}" target="_blank">${file.filename}</a>`;
+            list.appendChild(li);
+          });
+        });
+    }
+  </script>
+</body>
+</html>
